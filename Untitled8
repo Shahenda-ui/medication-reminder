@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تذكير الأدوية للمسنين</title>
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family: 'Arial', sans-serif;}
+body {background:#e6f7ff; color:#333; min-height:100vh; display:flex; flex-direction:column;}
+.container {width:90%; max-width:1200px; margin:auto; flex:1;}
+
+/* Header */
+header {
+  background:#99ccff;
+  color:white;
+  padding:30px 0;
+  text-align:center;
+}
+header h1 {font-size:2.5em; margin-bottom:10px;}
+header p {font-size:1.2em;}
+
+/* Navigation */
+nav {
+  background:#66b3ff;
+  padding:15px 0;
+  text-align:center;
+  box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+nav button {
+  padding:12px 25px;
+  margin:0 5px;
+  border:none;
+  border-radius:8px;
+  background:white;
+  color:#3399ff;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:1em;
+  transition:0.3s;
+}
+nav button:hover, nav button.active {
+  background:#3399ff;
+  color:white;
+  transform:scale(1.05);
+}
+
+/* Page Sections */
+.page {display:none; padding:30px 0;}
+.page.active {display:block;}
+
+/* Cards */
+.card {
+  background:white;
+  border-radius:12px;
+  padding:25px;
+  margin:20px 0;
+  box-shadow:0 4px 8px rgba(0,0,0,0.1);
+}
+.card h2 {color:#3399ff; margin-bottom:15px; font-size:1.8em;}
+
+/* Table */
+table {width:100%; border-collapse:collapse; margin-top:15px;}
+th, td {border:1px solid #99ccff; padding:12px; text-align:center;}
+th {background:#cce6ff; color:#333; font-weight:bold;}
+td input[type="file"] {width:100%;}
+
+/* Buttons */
+button.action-btn {
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  background:#3399ff;
+  color:white;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.3s;
+}
+button.action-btn:hover {background:#267acc; transform:scale(1.05);}
+
+/* Form */
+.form-group {margin-bottom:20px;}
+.form-group label {display:block; margin-bottom:8px; font-weight:bold; color:#3399ff;}
+.form-group input, .form-group select, .form-group textarea {
+  width:100%;
+  padding:12px;
+  border:2px solid #99ccff;
+  border-radius:8px;
+  font-size:1em;
+}
+
+/* Statistics */
+.stats {display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin:20px 0;}
+.stat-box {
+  background:linear-gradient(135deg, #3399ff, #66b3ff);
+  color:white;
+  padding:25px;
+  border-radius:12px;
+  text-align:center;
+  box-shadow:0 4px 8px rgba(0,0,0,0.1);
+}
+.stat-box h3 {font-size:2.5em; margin-bottom:10px;}
+.stat-box p {font-size:1.1em;}
+
+/* Calendar */
+.calendar {display:grid; grid-template-columns:repeat(7, 1fr); gap:10px; margin-top:20px;}
+.calendar-day {
+  background:#cce6ff;
+  padding:15px;
+  border-radius:8px;
+  text-align:center;
+  cursor:pointer;
+  transition:0.3s;
+}
+.calendar-day:hover {background:#99ccff; transform:scale(1.05);}
+.calendar-day.has-med {background:#66ff99; font-weight:bold;}
+
+/* Footer */
+footer {
+  background:#99ccff;
+  color:white;
+  text-align:center;
+  padding:20px 0;
+  margin-top:40px;
+}
+
+/* Emergency Contact */
+.emergency {
+  background:#ff6666;
+  color:white;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  margin:20px 0;
+}
+.emergency h3 {font-size:1.5em; margin-bottom:10px;}
+.emergency button {
+  background:white;
+  color:#ff6666;
+  padding:15px 30px;
+  font-size:1.2em;
+  margin-top:10px;
+}
+
+/* Reminder Alert */
+.reminder-alert {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  background:white;
+  padding:40px;
+  border-radius:15px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  display:none;
+  z-index:1000;
+  text-align:center;
+}
+.reminder-alert.show {display:block;}
+.reminder-alert h2 {color:#3399ff; margin-bottom:20px;}
+.reminder-alert button {margin-top:20px;}
+
+.overlay {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  z-index:999;
+}
+.overlay.show {display:block;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏥 تذكير الأدوية للمسنين</h1>
+  <p>نساعدك على إدارة أدويتك بسهولة وأمان</p>
+</header>
+
+<nav>
+  <button onclick="showPage('home')" class="active">الرئيسية</button>
+  <button onclick="showPage('schedule')">جدول الأدوية</button>
+  <button onclick="showPage('add')">إضافة دواء</button>
+  <button onclick="showPage('history')">السجل الطبي</button>
+  <button onclick="showPage('doctor')">معلومات الطبيب</button>
+</nav>
+
+<div class="container">
+  <!-- Page 1: Home -->
+  <section id="home" class="page active">
+    <div class="card">
+      <h2>مرحباً بك في نظام تذكير الأدوية</h2>
+      <p style="font-size:1.2em; line-height:1.8;">هذا النظام مصمم خصيصاً لمساعدة كبار السن على تذكر مواعيد أدويتهم والحفاظ على صحتهم.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-box">
+        <h3>5</h3>
+        <p>أدوية مسجلة</p>
+      </div>
+      <div class="stat-box">
+        <h3>3</h3>
+        <p>أدوية اليوم</p>
+      </div>
+      <div class="stat-box">
+        <h3>12</h3>
+        <p>جرعات هذا الأسبوع</p>
+      </div>
+      <div class="stat-box">
+        <h3>95%</h3>
+        <p>نسبة الالتزام</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📅 أدوية اليوم</h2>
+      <table>
+        <tr>
+          <th>الدواء</th>
+          <th>الوقت</th>
+          <th>الحالة</th>
+          <th>الإجراء</th>
+        </tr>
+        <tr>
+          <td>أسبرين</td>
+          <td>08:00 صباحاً</td>
+          <td style="color:green;">✓ تم التناول</td>
+          <td><button class="action-btn" disabled>مكتمل</button></td>
+        </tr>
+        <tr>
+          <td>فيتامين د</td>
+          <td>02:00 مساءً</td>
+          <td style="color:orange;">⏰ قريباً</td>
+          <td><button class="action-btn" onclick="markTaken('فيتامين د')">تم التناول</button></td>
+        </tr>
+        <tr>
+          <td>أوميغا 3</td>
+          <td>08:00 مساءً</td>
+          <td style="color:gray;">⏳ منتظر</td>
+          <td><button class="action-btn" onclick="setReminder('أوميغا 3')">تذكير</button></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="emergency">
+      <h3>🚨 طوارئ</h3>
+      <p>في حالة الطوارئ، اضغط هنا للاتصال بالطبيب</p>
+      <button class="action-btn" onclick="callDoctor()">اتصال فوري</button>
+    </div>
+  </section>
+
+  <!-- Page 2: Schedule -->
+  <section id="schedule" class="page">
+    <div class="card">
+      <h2>📋 جدول الأدوية الكامل</h2>
+      <table>
+        <tr>
+          <th>الدواء</th>
+          <th>الجرعة</th>
+          <th>الوقت</th>
+          <th>الأيام</th>
+          <th>صورة</th>
+          <th>الإجراء</th>
+        </tr>
+        <tr>
+          <td>أسبرين</td>
+          <td>حبة واحدة</td>
+          <td>08:00 صباحاً</td>
+          <td>يومياً</td>
+          <td><input type="file" accept="image/*"></td>
+          <td><button class="action-btn" onclick="editMed('أسبرين')">تعديل</button></td>
+        </tr>
+        <tr>
+          <td>فيتامين د</td>
+          <td>كبسولة واحدة</td>
+          <td>02:00 مساءً</td>
+          <td>يومياً</td>
+          <td><input type="file" accept="image/*"></td>
+          <td><button class="action-btn" onclick="editMed('فيتامين د')">تعديل</button></td>
+        </tr>
+        <tr>
+          <td>أوميغا 3</td>
+          <td>كبسولة واحدة</td>
+          <td>08:00 مساءً</td>
+          <td>يومياً</td>
+          <td><input type="file" accept="image/*"></td>
+          <td><button class="action-btn" onclick="editMed('أوميغا 3')">تعديل</button></td>
+        </tr>
+        <tr>
+          <td>ضغط الدم</td>
+          <td>حبة واحدة</td>
+          <td>09:00 صباحاً</td>
+          <td>يومياً</td>
+          <td><input type="file" accept="image/*"></td>
+          <td><button class="action-btn" onclick="editMed('ضغط الدم')">تعديل</button></td>
+        </tr>
+        <tr>
+          <td>الكالسيوم</td>
+          <td>حبتان</td>
+          <td>10:00 مساءً</td>
+          <td>يومياً</td>
+          <td><input type="file" accept="image/*"></td>
+          <td><button class="action-btn" onclick="editMed('الكالسيوم')">تعديل</button></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>📆 التقويم الشهري</h2>
+      <div class="calendar">
+        <div class="calendar-day has-med">1<br>3 أدوية</div>
+        <div class="calendar-day has-med">2<br>3 أدوية</div>
+        <div class="calendar-day has-med">3<br>3 أدوية</div>
+        <div class="calendar-day has-med">4<br>3 أدوية</div>
+        <div class="calendar-day has-med">5<br>3 أدوية</div>
+        <div class="calendar-day has-med">6<br>3 أدوية</div>
+        <div class="calendar-day has-med">7<br>3 أدوية</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 3: Add Medicine -->
+  <section id="add" class="page">
+    <div class="card">
+      <h2>➕ إضافة دواء جديد</h2>
+      <form onsubmit="addMedicine(event)">
+        <div class="form-group">
+          <label>اسم الدواء:</label>
+          <input type="text" required placeholder="مثال: بنادول">
+        </div>
+        <div class="form-group">
+          <label>الجرعة:</label>
+          <input type="text" required placeholder="مثال: حبة واحدة">
+        </div>
+        <div class="form-group">
+          <label>الوقت:</label>
+          <input type="time" required>
+        </div>
+        <div class="form-group">
+          <label>عدد مرات التكرار يومياً:</label>
+          <select>
+            <option>مرة واحدة</option>
+            <option>مرتان</option>
+            <option>ثلاث مرات</option>
+            <option>أربع مرات</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الأيام:</label>
+          <select>
+            <option>يومياً</option>
+            <option>يوم بعد يوم</option>
+            <option>مرتين في الأسبوع</option>
+            <option>مرة في الأسبوع</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ملاحظات:</label>
+          <textarea rows="4" placeholder="أي ملاحظات إضافية عن الدواء..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>صورة الدواء:</label>
+          <input type="file" accept="image/*">
+        </div>
+        <button type="submit" class="action-btn" style="width:100%; padding:15px; font-size:1.2em;">حفظ الدواء</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Page 4: History -->
+  <section id="history" class="page">
+    <div class="card">
+      <h2>📜 السجل الطبي</h2>
+      <h3 style="color:#3399ff; margin-top:20px;">آخر 7 أيام</h3>
+      <table>
+        <tr>
+          <th>التاريخ</th>
+          <th>الدواء</th>
+          <th>الوقت المحدد</th>
+          <th>وقت التناول الفعلي</th>
+          <th>الحالة</th>
+        </tr>
+        <tr>
+          <td>29 نوفمبر 2025</td>
+          <td>أسبرين</td>
+          <td>08:00 صباحاً</td>
+          <td>08:15 صباحاً</td>
+          <td style="color:green;">✓ تم</td>
+        </tr>
+        <tr>
+          <td>29 نوفمبر 2025</td>
+          <td>فيتامين د</td>
+          <td>02:00 مساءً</td>
+          <td>-</td>
+          <td style="color:orange;">⏰ معلق</td>
+        </tr>
+        <tr>
+          <td>28 نوفمبر 2025</td>
+          <td>أسبرين</td>
+          <td>08:00 صباحاً</td>
+          <td>07:55 صباحاً</td>
+          <td style="color:green;">✓ تم</td>
+        </tr>
+        <tr>
+          <td>28 نوفمبر 2025</td>
+          <td>فيتامين د</td>
+          <td>02:00 مساءً</td>
+          <td>-</td>
+          <td style="color:red;">✗ مفقود</td>
+        </tr>
+        <tr>
+          <td>27 نوفمبر 2025</td>
+          <td>أوميغا 3</td>
+          <td>08:00 مساءً</td>
+          <td>08:30 مساءً</td>
+          <td style="color:green;">✓ تم</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>📊 إحصائيات الالتزام</h2>
+      <div style="padding:20px; background:#f0f8ff; border-radius:8px; margin-top:15px;">
+        <p style="font-size:1.2em; margin-bottom:10px;"><strong>هذا الأسبوع:</strong></p>
+        <p style="font-size:1.1em;">✓ أدوية تم تناولها: 18 من 21 (85.7%)</p>
+        <p style="font-size:1.1em; margin-top:10px;">✗ أدوية مفقودة: 3</p>
+        <p style="font-size:1.1em; margin-top:10px; color:green;"><strong>أداء ممتاز! استمر على هذا المستوى</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 5: Doctor Info -->
+  <section id="doctor" class="page">
+    <div class="card">
+      <h2>👨‍⚕️ معلومات الطبيب المعالج</h2>
+      <div style="padding:20px; line-height:2;">
+        <p><strong>الاسم:</strong> د. أحمد علي</p>
+        <p><strong>التخصص:</strong> الباطنة العامة</p>
+        <p><strong>رقم الهاتف:</strong> 0100-123-4567</p>
+        <p><strong>البريد الإلكتروني:</strong> dr.ahmed@hospital.com</p>
+        <p><strong>العنوان:</strong> مستشفى النيل - الدور الثالث - عيادة 305</p>
+        <p><strong>ساعات العمل:</strong> السبت - الخميس (9 صباحاً - 5 مساءً)</p>
+      </div>
+      <button class="action-btn" onclick="callDoctor()" style="width:100%; padding:15px; margin-top:15px; font-size:1.2em;">📞 اتصال بالطبيب</button>
+    </div>
+
+    <div class="card">
+      <h2>🏥 معلومات المستشفى</h2>
+      <div style="padding:20px; line-height:2;">
+        <p><strong>اسم المستشفى:</strong> مستشفى النيل التخصصي</p>
+        <p><strong>رقم الطوارئ:</strong> 123</p>
+        <p><strong>الخط الساخن:</strong> 0100-999-8888</p>
+        <p><strong>العنوان:</strong> شارع النيل - القاهرة</p>
+      </div>
+      <button class="action-btn" onclick="callEmergency()" style="width:100%; padding:15px; margin-top:15px; font-size:1.2em; background:#ff6666;">🚨 طوارئ</button>
+    </div>
+
+    <div class="card">
+      <h2>📝 ملاحظات الطبيب</h2>
+      <div style="padding:20px; background:#fff9e6; border-radius:8px; border-right:4px solid #ffcc00;">
+        <p style="margin-bottom:10px;"><strong>آخر زيارة: 15 نوفمبر 2025</strong></p>
+        <p style="line-height:1.8;">
+          - الاستمرار على الأسبرين يومياً لتحسين الدورة الدموية<br>
+          - زيادة جرعة فيتامين د بسبب نقص في التحاليل<br>
+          - الالتزام بالأدوية بانتظام<br>
+          - الفحص القادم: 15 ديسمبر 2025
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <p>&copy; 2025 نظام تذكير الأدوية للمسنين - جميع الحقوق محفوظة</p>
+</footer>
+
+<!-- Reminder Alert -->
+<div class="overlay" onclick="closeReminder()"></div>
+<div class="reminder-alert">
+  <h2>⏰ تذكير بالدواء</h2>
+  <p style="font-size:1.3em; margin:20px 0;">حان وقت تناول <strong id="medName"></strong></p>
+  <button class="action-btn" onclick="closeReminder()">حسناً</button>
+</div>
+
+<script>
+// Store medications data
+const medications = {};
+
+// Page Navigation
+function showPage(pageId) {
+  const pages = document.querySelectorAll('.page');
+  const buttons = document.querySelectorAll('nav button');
+  
+  pages.forEach(p => p.classList.remove('active'));
+  buttons.forEach(b => b.classList.remove('active'));
+  
+  document.getElementById(pageId).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Mark medicine as taken
+function markTaken(medName) {
+  alert(`تم تسجيل تناول ${medName} بنجاح! ✓`);
+}
+
+// Set reminder
+function setReminder(medName) {
+  document.getElementById('medName').textContent = medName;
+  document.querySelector('.overlay').classList.add('show');
+  document.querySelector('.reminder-alert').classList.add('show');
+}
+
+// Close reminder
+function closeReminder() {
+  document.querySelector('.overlay').classList.remove('show');
+  document.querySelector('.reminder-alert').classList.remove('show');
+}
+
+// Edit medicine
+function editMed(medName) {
+  alert(`فتح صفحة تعديل ${medName}`);
+  showPage('add');
+}
+
+// Add medicine
+function addMedicine(e) {
+  e.preventDefault();
+  alert('تم إضافة الدواء بنجاح! ✓');
+  e.target.reset();
+  showPage('schedule');
+}
+
+// Call doctor
+function callDoctor() {
+  if(confirm('هل تريد الاتصال بالطبيب د. أحمد علي؟')) {
+    alert('جاري الاتصال بـ 0100-123-4567...');
+  }
+}
+
+// Call emergency
+function callEmergency() {
+  if(confirm('هل تريد الاتصال بالطوارئ؟')) {
+    alert('جاري الاتصال بالطوارئ 123...');
+  }
+}
+
+// Auto reminder (example)
+setTimeout(() => {
+  setReminder('فيتامين د');
+}, 3000);
+</script>
+</body>
+</html>
